@@ -2432,8 +2432,8 @@ rxvt_term::scr_refresh () NOTHROW
                 XSetForeground (dpy, gc, pix_colors[fore]);
 
               XDrawLine (dpy, vt, gc,
-                         xpixel, ypixel + font->ascent + 1,
-                         xpixel + Width2Pixel (count) - 1, ypixel + font->ascent + 1);
+                         xpixel, ypixel + Height2Pixel (1) - 1,
+                         xpixel + Width2Pixel (count) - 1, ypixel + Height2Pixel (1) - 1);
             }
         }                     /* for (col....) */
     }                         /* for (row....) */
