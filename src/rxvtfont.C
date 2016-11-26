@@ -1226,92 +1226,63 @@ rxvt_font_xft::load (const rxvt_fontprop &prop, bool force_prop)
     return false;
 
   int ftheight = 0;
+
+  p = FcPatternDuplicate (match);
+  f = XftFontOpenPattern (disp, p);
+
+  if (!f)
+    {
+      FcPatternDestroy (p);
+      return false;
+    }
+
+  FT_Face face = XftLockFace (f);
+
+  ascent  = f->ascent;
+  descent = f->descent;
+  height  = max (ascent + descent, f->height);
+  width   = 0;
+
+  bool scalable = face->face_flags & FT_FACE_FLAG_SCALABLE;
+
+  XftUnlockFace (f);
+
+  for (uint16_t *t = extent_test_chars; t < extent_test_chars + ecb_array_length (extent_test_chars); t++)
+    {
+      FcChar16 ch = *t;
+
+      if (cs != CS_UNICODE
+          && ch > 0x100
+          && FROM_UNICODE (cs, ch) == NOCHAR)
+        continue;
+
+      // ignore characters we wouldn't use anyways
+      bool careful;
+      if (!has_char (*t, &prop, careful))
+        continue;
+
+      XGlyphInfo g;
+      XftTextExtents16 (disp, f, &ch, 1, &g);
+
+      g.width -= g.x;
+
+      int wcw = WCWIDTH (ch);
+      if (wcw > 1) g.xOff = g.xOff / wcw;
+
+      if (width    < g.xOff  ) width    = g.xOff;
+      if (height   < g.height) height   = g.height;
+    }
+
   bool success = true;
 
-  for (;;)
+  if (!width)
     {
-      p = FcPatternDuplicate (match);
-      f = XftFontOpenPattern (disp, p);
-
-      if (!f)
-        {
-          FcPatternDestroy (p);
-          success = false;
-          break;
-        }
-
-      FT_Face face = XftLockFace (f);
-
-      ascent  = (face->size->metrics.ascender + 63) >> 6;
-      descent = (-face->size->metrics.descender + 63) >> 6;
-      height  = max (ascent + descent, (face->size->metrics.height + 63) >> 6);
-      width   = 0;
-
-      bool scalable = face->face_flags & FT_FACE_FLAG_SCALABLE;
-
-      XftUnlockFace (f);
-
-      int glheight = height;
-
-      for (uint16_t *t = extent_test_chars; t < extent_test_chars + ecb_array_length (extent_test_chars); t++)
-        {
-          FcChar16 ch = *t;
-
-          if (cs != CS_UNICODE
-              && ch > 0x100
-              && FROM_UNICODE (cs, ch) == NOCHAR)
-            continue;
-
-          // ignore characters we wouldn't use anyways
-          bool careful;
-          if (!has_char (*t, &prop, careful))
-            continue;
-
-          XGlyphInfo g;
-          XftTextExtents16 (disp, f, &ch, 1, &g);
-
-          g.width -= g.x;
-
-          int wcw = WCWIDTH (ch);
-          if (wcw > 0) g.width = (g.width + wcw - 1) / wcw;
-
-          if (width    < g.width       ) width    = g.width;
-          if (height   < g.height      ) height   = g.height;
-          if (glheight < g.height - g.y) glheight = g.height - g.y;
-        }
-
-      if (!width)
-        {
-          rxvt_warn ("unable to calculate font width for '%s', ignoring.\n", name);
-
-          XftFontClose (disp, f);
-          f = 0;
-
-          success = false;
-          break;
-        }
-
-      if (prop.height == rxvt_fontprop::unset
-          || (height <= prop.height && glheight <= prop.height)
-          || height <= 2
-          || !scalable)
-        break;
-
-      if (ftheight)
-        {
-          // take smaller steps near the end
-          if (height > prop.height + 1) ftheight++;
-          if (height > prop.height + 2) ftheight++;
-          if (height > prop.height + 3) ftheight++;
-
-          ftheight -= height - prop.height;
-        }
-      else
-        ftheight = prop.height - 1;
+      rxvt_warn ("unable to calculate font width for '%s', ignoring.\n", name);
 
       XftFontClose (disp, f);
-      FcPatternDel (match, FC_PIXEL_SIZE);
-      FcPatternAddInteger (match, FC_PIXEL_SIZE, ftheight);
+      f = 0;
+
+      success = false;
     }
 
   FcPatternDestroy (match);
@@ -1398,7 +1369,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
 
           ep->glyph = glyph;
           ep->x = x_ + (cwidth - extents.xOff >> 1);
-          ep->y = y_ + ascent;
+          ep->y = y_ + (term->fheight * ((float)ascent / height));
 
           if (extents.xOff == 0)
             ep->x = x_ + cwidth;
