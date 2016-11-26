@@ -2241,6 +2241,7 @@ const uint16_t *jis0208_1990_0_f_i[] = {
 
 static uint32_t cs_jis0208_1990_0_from_unicode (unicode_t unicode) {
     if (unicode == 0x2312) return 0x225e;
+    if (unicode == 0xff5e) return 0x2141;
     uint8_t  l = unicode;
     uint16_t h = unicode >> 8;
     if (0x00 <= h && h <= 0xff
