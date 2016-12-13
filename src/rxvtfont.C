@@ -1369,7 +1369,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
 
           ep->glyph = glyph;
           ep->x = x_ + (cwidth - extents.xOff >> 1);
-          ep->y = y_ + (term->fheight * ((float)ascent / height));
+          ep->y = y_ + term->fbase;
 
           if (extents.xOff == 0)
             ep->x = x_ + cwidth;
