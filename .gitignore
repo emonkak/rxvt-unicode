@@ -1,0 +1,14 @@
+/libev/
+/libptytty/
+/src/perlxsi.c
+/src/rxvt
+/src/rxvtc
+/src/rxvtd
+/src/rxvtperl.C
+*.man
+*.o
+Makefile
+config.cache
+config.h
+config.log
+config.status
