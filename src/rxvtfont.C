@@ -1052,9 +1052,6 @@ rxvt_font_x11::draw (rxvt_drawable &d, int x, int y,
 
   int base = ascent; // sorry, incorrect: term->fbase;
 
-  if (term->lineSpace > 0)
-    base += term->lineSpace >> 1;
-
   XGCValues v;
   v.foreground = term->pix_colors[fg];
   v.font = f->fid;
@@ -1369,7 +1366,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
 
           ep->glyph = glyph;
           ep->x = x_ + (cwidth - extents.xOff >> 1);
-          ep->y = y_ + term->fbase;
+          ep->y = y_ + term->fbase + (term->lineSpace >> 1);
 
           if (extents.xOff == 0)
             ep->x = x_ + cwidth;
