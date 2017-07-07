@@ -1050,7 +1050,7 @@ rxvt_font_x11::draw (rxvt_drawable &d, int x, int y,
               || height != term->fheight
               || ascent != f->ascent;
 
-  int base = ascent; // sorry, incorrect: term->fbase;
+  int base = ascent + (term->lineSpace >> 1); // sorry, incorrect: term->fbase;
 
   XGCValues v;
   v.foreground = term->pix_colors[fg];
